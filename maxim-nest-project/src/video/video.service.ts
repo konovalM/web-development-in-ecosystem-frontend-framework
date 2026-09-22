@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import type {
   CreateVideoDto,
   FilterVideoDto,
@@ -16,33 +18,33 @@ export interface Video {
   status: VideoStatus;
 }
 
+const DATA_FILE = process.env.DATA_FILE ?? 'data/videos.json';
+
 @Injectable()
 export class VideoService {
-  private readonly videos: Video[] = [
-    {
-      id: '1',
-      title: 'Video 1',
-      description: 'Description 1',
-      url: 'https://samplelib.com/mp4/sample-5s.mp4',
-      duration: 120,
-      theme: 'backend',
-      author: 'maxim',
-      status: 'published',
-    },
-    {
-      id: '2',
-      title: 'Video 2',
-      description: 'Description 2',
-      url: 'https://samplelib.com/mp4/sample-5s.mp4',
-      duration: 90,
-      theme: 'frontend',
-      author: 'maxim',
-      status: 'published',
-    },
-  ];
+  private read(): Video[] {
+    if (!existsSync(DATA_FILE)) {
+      return [];
+    }
+    try {
+      return JSON.parse(readFileSync(DATA_FILE, 'utf-8')) as Video[];
+    } catch {
+      return [];
+    }
+  }
+
+  private write(videos: Video[]): void {
+    mkdirSync(dirname(DATA_FILE), { recursive: true });
+    writeFileSync(DATA_FILE, JSON.stringify(videos, null, 2));
+  }
+
+  seed(videos: Video[]): Video[] {
+    this.write(videos);
+    return videos;
+  }
 
   findAll(filter: FilterVideoDto = {}): Video[] {
-    let result = this.videos;
+    let result = this.read();
 
     if (filter.title) {
       const q = filter.title.trim().toLowerCase();
@@ -66,7 +68,7 @@ export class VideoService {
   }
 
   findOne(id: string): Video {
-    const video = this.videos.find((item) => item.id === id);
+    const video = this.read().find((item) => item.id === id);
 
     if (!video) {
       throw new NotFoundException(`Видео с id ${id} не найдено`);
@@ -76,6 +78,7 @@ export class VideoService {
   }
 
   create(dto: CreateVideoDto): Video {
+    const videos = this.read();
     const video: Video = {
       id: Math.random().toString(36).slice(2, 11),
       title: dto.title,
@@ -87,7 +90,8 @@ export class VideoService {
       status: dto.status ?? 'processing',
     };
 
-    this.videos.push(video);
+    videos.push(video);
+    this.write(videos);
     return video;
   }
 }

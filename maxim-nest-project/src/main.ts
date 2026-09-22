@@ -13,6 +13,10 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT ?? 3000;
+  const nodeEnv = process.env.NODE_ENV ?? 'development';
+
+  await app.listen(port);
+  console.log(`Backend запущен: PORT=${port}, NODE_ENV=${nodeEnv}`);
 }
 await bootstrap();

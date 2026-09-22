@@ -1,0 +1,28 @@
+services:
+  backend:
+    build: ./maxim-nest-project
+    container_name: vidnest-backend
+    environment:
+      PORT: 3000
+      NODE_ENV: ${NODE_ENV:-production}
+      DATA_FILE: data/videos.json
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    volumes:
+      - backend-data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./my-app
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    container_name: vidnest-frontend
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend-data:
