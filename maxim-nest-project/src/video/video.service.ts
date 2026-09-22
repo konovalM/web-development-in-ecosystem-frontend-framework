@@ -1,60 +1,93 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-
-export class CreateVideoDto{
-    title: string;
-    description: string;
-    url: string;
-    duration: number;
-}
+import type {
+  CreateVideoDto,
+  FilterVideoDto,
+  VideoStatus,
+} from './dto/index.js';
 
 export interface Video {
-    id: string;
-    title: string;
-    description: string;
-    url: string;
-    duration: number;
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  duration: number;
+  theme: string;
+  author: string;
+  status: VideoStatus;
 }
 
 @Injectable()
 export class VideoService {
-    private readonly videos: Video[] = [{
-        id: '1',
-        title: 'Video 1',
-        description: 'Description 1',
-        url: 'https://samplelib.com/mp4/sample-5s.mp4',
-        duration: 120
-    }, {
-        id: '2',
-        title: 'Video 2',
-        description: 'Description 2',
-        url: 'https://samplelib.com/mp4/sample-5s.mp4',
-        duration: 90
-    }];
+  private readonly videos: Video[] = [
+    {
+      id: '1',
+      title: 'Video 1',
+      description: 'Description 1',
+      url: 'https://samplelib.com/mp4/sample-5s.mp4',
+      duration: 120,
+      theme: 'backend',
+      author: 'maxim',
+      status: 'published',
+    },
+    {
+      id: '2',
+      title: 'Video 2',
+      description: 'Description 2',
+      url: 'https://samplelib.com/mp4/sample-5s.mp4',
+      duration: 90,
+      theme: 'frontend',
+      author: 'maxim',
+      status: 'published',
+    },
+  ];
 
-    findAll(): Video[] {
-        return this.videos;
+  findAll(filter: FilterVideoDto = {}): Video[] {
+    let result = this.videos;
+
+    if (filter.title) {
+      const q = filter.title.trim().toLowerCase();
+      result = result.filter(
+        (video) =>
+          video.title.toLowerCase().includes(q) ||
+          video.author.toLowerCase().includes(q) ||
+          video.theme.toLowerCase().includes(q),
+      );
     }
 
-    findOne(id: string): Video {
-        const video = this.videos.find(video => video.id === id);
-
-        if (!video) {
-            throw new NotFoundException(`Video with ID ${id} not found`);
-        }
-        
-        return video;
+    if (filter.theme) {
+      result = result.filter((video) => video.theme === filter.theme);
     }
 
-    create(dto: CreateVideoDto): Video {
-        const video: Video = {
-            id: Math.random().toString(36).substr(2, 9).toString(),
-            ...dto,
-        };
-        this.videos.push(video);
-        return video;
+    if (filter.status) {
+      result = result.filter((video) => video.status === filter.status);
     }
 
-    // remove
+    return result;
+  }
 
-    // update
+  findOne(id: string): Video {
+    const video = this.videos.find((item) => item.id === id);
+
+    if (!video) {
+      throw new NotFoundException(`Видео с id ${id} не найдено`);
+    }
+
+    return video;
+  }
+
+  create(dto: CreateVideoDto): Video {
+    const video: Video = {
+      id: Math.random().toString(36).slice(2, 11),
+      title: dto.title,
+      description: dto.description ?? '',
+      url: dto.url,
+      duration: dto.duration,
+      theme: dto.theme ?? 'other',
+      author: dto.author ?? 'me',
+      status: dto.status ?? 'processing',
+    };
+
+    this.videos.push(video);
+    return video;
+  }
 }
