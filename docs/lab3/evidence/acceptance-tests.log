@@ -1,0 +1,96 @@
+
+> maxim-nest-project@0.0.1 test:integration
+> npm run build && node --test --test-concurrency=1 test/database.integration.mjs
+
+
+> maxim-nest-project@0.0.1 build
+> nest build
+
+Seed: small [ { count: '40' } ]
+STATE 01 fresh migrations and exact small seed / empty relations [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 01 fresh migrations and exact small seed / empty relations (226.524958ms)
+Seed: small [ { count: '40' } ]
+STATE 02 persistence after application restart [ { videos: '41', tags: '80', used_bytes: '825000' } ]
+✔ 02 persistence after application restart (68.076417ms)
+Seed: small [ { count: '40' } ]
+STATE 03 create video, tags and exact quota [ { videos: '41', tags: '80', used_bytes: '825000' } ]
+✔ 03 create video, tags and exact quota (31.005542ms)
+Seed: small [ { count: '40' } ]
+STATE 04 invalid DTO / unknown fields / query and path [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 04 invalid DTO / unknown fields / query and path (36.19725ms)
+Seed: small [ { count: '40' } ]
+STATE 05 unknown tag rolls back video, tags AND quota after partial work [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 05 unknown tag rolls back video, tags AND quota after partial work (29.729875ms)
+Seed: small [ { count: '40' } ]
+STATE 06 PostgreSQL constraints reject direct DML [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 06 PostgreSQL constraints reject direct DML (25.938209ms)
+Seed: small [ { count: '40' } ]
+STATE 07 concurrent favorite additions are idempotent [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 07 concurrent favorite additions are idempotent (62.558708ms)
+Seed: small [ { count: '40' } ]
+STATE 08 repeated favorite deletion preserves others [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 08 repeated favorite deletion preserves others (27.479417ms)
+Seed: small [ { count: '40' } ]
+STATE 09 insufficient quota leaves state unchanged [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 09 insufficient quota leaves state unchanged (108.762917ms)
+Seed: small [ { count: '40' } ]
+STATE 10 failure after UPDATE and INSERT completely rolls back [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 10 failure after UPDATE and INSERT completely rolls back (25.430875ms)
+Seed: small [ { count: '40' } ]
+RACE HTTP [ 201, 409 ] { used_bytes: '83886080' }
+STATE 11 two HTTP requests compete for last quota [ { videos: '41', tags: '80', used_bytes: '84706080' } ]
+✔ 11 two HTTP requests compete for last quota (25.348833ms)
+Seed: small [ { count: '40' } ]
+STATE 12 foreign mutation forbidden, private reading hidden [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 12 foreign mutation forbidden, private reading hidden (34.441ms)
+Seed: small [ { count: '40' } ]
+STATE 13 hiding removes public catalog and favorites, first publication retained [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 13 hiding removes public catalog and favorites, first publication retained (84.826542ms)
+Seed: small [ { count: '40' } ]
+STATE 14 identical timestamps: full cursor traversal has no gaps or repeats [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 14 identical timestamps: full cursor traversal has no gaps or repeats (32.507459ms)
+Seed: small [ { count: '40' } ]
+STATE 15 quota reconciliation includes empty channel [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 15 quota reconciliation includes empty channel (21.089791ms)
+Seed: small [ { count: '40' } ]
+N+1 5 videos: 2 SQL
+N+1 20 videos: 2 SQL
+STATE 16 exact bigint above MAX_SAFE_INTEGER and fixed SQL count [ { videos: '41', tags: '80', used_bytes: '9007199255560993' } ]
+✔ 16 exact bigint above MAX_SAFE_INTEGER and fixed SQL count (22.361167ms)
+Seed: small [ { count: '40' } ]
+CONTROLLED LOCK commit waiter affected 0
+CONTROLLED LOCK rollback waiter affected 1
+STATE 17 controlled lock: commit rejects waiter; rollback permits waiter [ { videos: '42', tags: '78', used_bytes: '168592160' } ]
+✔ 17 controlled lock: commit rejects waiter; rollback permits waiter (36.881917ms)
+Seed: small [ { count: '40' } ]
+STATE 18 legacy published demos expose playback URLs; new metadata stays optional [ { videos: '41', tags: '80', used_bytes: '825000' } ]
+✔ 18 legacy published demos expose playback URLs; new metadata stays optional (31.495875ms)
+Seed: small [ { count: '40' } ]
+STATE 19 new demo users and own profile lifecycle [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 19 new demo users and own profile lifecycle (28.781125ms)
+Seed: small [ { count: '40' } ]
+STATE 20 channel lifecycle preserves ownership and immutable quota [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 20 channel lifecycle preserves ownership and immutable quota (32.506958ms)
+Seed: small [ { count: '40' } ]
+STATE 21 shared tags normalize, conflict, rename and protect used relations [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 21 shared tags normalize, conflict, rename and protect used relations (30.184792ms)
+Seed: small [ { count: '40' } ]
+STATE 22 owned video pages include private statuses and use stable cursor [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 22 owned video pages include private statuses and use stable cursor (27.958209ms)
+Seed: small [ { count: '40' } ]
+STATE 23 metadata, comments, playback and tag edits commit or roll back together [ { videos: '40', tags: '76', used_bytes: '820000' } ]
+✔ 23 metadata, comments, playback and tag edits commit or roll back together (35.484209ms)
+Seed: small [ { count: '40' } ]
+STATE 24 playlists create, edit, order, remove, delete and enforce owner [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 24 playlists create, edit, order, remove, delete and enforce owner (65.094417ms)
+Seed: small [ { count: '40' } ]
+STATE 25 concurrent playlist appends serialize and hidden foreign items reveal no metadata [ { videos: '40', tags: '78', used_bytes: '820000' } ]
+✔ 25 concurrent playlist appends serialize and hidden foreign items reveal no metadata (36.583875ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1591.614375

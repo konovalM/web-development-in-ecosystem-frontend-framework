@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-11-02T20:01:59.156Z",
+  "database": "vidnest",
+  "serverVersion": "17.11",
+  "tables": [
+    "channels",
+    "favorites",
+    "migrations",
+    "playlist_items",
+    "playlists",
+    "tags",
+    "users",
+    "video_tags",
+    "videos"
+  ],
+  "migrations": [
+    "Initial1800000000000",
+    "Comments1800000000001",
+    "Indexes1800000000002",
+    "Playback1800000000003"
+  ],
+  "indexes": [
+    "ix_catalog",
+    "ix_channel",
+    "ix_favorites"
+  ],
+  "quotaChannelsChecked": 8,
+  "quotaMismatches": [],
+  "quotaInvariantPassed": true,
+  "sqlResultsRecorded": 12,
+  "planExperiments": 2,
+  "planRepeatsPerPhase": 3
+}

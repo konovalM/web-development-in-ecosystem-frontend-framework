@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "status": 200,
+    "playbackUrl": "https://samplelib.com/mp4/sample-5s.mp4"
+  },
+  {
+    "id": 2,
+    "status": 200,
+    "playbackUrl": "https://samplelib.com/mp4/sample-5s.mp4"
+  },
+  {
+    "mediaStatus": 200,
+    "contentType": "video/mp4"
+  }
+]

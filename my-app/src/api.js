@@ -1,58 +1,47 @@
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
-export const USER_ID = 'me'
-
-async function handle(res) {
-  if (!res.ok) {
-    let message = `HTTP ${res.status}`
+export async function request(
+  path,
+  { user, method = 'GET', body, signal } = {}
+) {
+  const response = await fetch(`${API_URL}${path}`, {
+    method,
+    signal,
+    headers: {
+      ...(user ? { 'X-Demo-User': String(user) } : {}),
+      ...(body !== undefined ? { 'Content-Type': 'application/json' } : {})
+    },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {})
+  })
+  if (!response.ok) {
+    let message = `HTTP ${response.status}`
     try {
-      const body = await res.json()
-      if (body?.message) {
-        message = Array.isArray(body.message)
-          ? body.message.join(', ')
-          : body.message
-      }
+      const data = await response.json()
+      message = Array.isArray(data.message)
+        ? data.message.join(', ')
+        : data.message || message
     } catch {
-      void 0
+      /* response may not be JSON */
     }
     throw new Error(message)
   }
-  return res.status === 204 ? null : res.json()
+  return response.status === 204 ? null : response.json()
 }
-
-const json = { 'Content-Type': 'application/json' }
-
-export function getVideos(title) {
-  const qs = title ? `?title=${encodeURIComponent(title)}` : ''
-  return fetch(`${API_URL}/video${qs}`).then(handle)
+export function videoPage(
+  path,
+  { q = '', channelId = '', cursor = '', limit = 20 } = {},
+  options
+) {
+  const query = new URLSearchParams({ limit: String(limit) })
+  if (q) query.set('q', q)
+  if (channelId) query.set('channelId', channelId)
+  if (cursor) query.set('cursor', cursor)
+  return request(`${path}?${query}`, options)
 }
-
-export function getVideo(id) {
-  return fetch(`${API_URL}/video/${id}`).then(handle)
+export const statusLabel = {
+  published: 'Опубликовано',
+  draft: 'Черновик',
+  hidden: 'Скрыто'
 }
-
-export function createVideo(data) {
-  return fetch(`${API_URL}/video`, {
-    method: 'POST',
-    headers: json,
-    body: JSON.stringify(data),
-  }).then(handle)
-}
-
-export function getFavorites() {
-  return fetch(`${API_URL}/favorites?userId=${USER_ID}`).then(handle)
-}
-
-export function addFavorite(videoId) {
-  return fetch(`${API_URL}/favorites`, {
-    method: 'POST',
-    headers: json,
-    body: JSON.stringify({ videoId, userId: USER_ID }),
-  }).then(handle)
-}
-
-export function removeFavorite(videoId) {
-  return fetch(`${API_URL}/favorites/${videoId}?userId=${USER_ID}`, {
-    method: 'DELETE',
-  }).then(handle)
-}
+export const bytes = (value = '0') =>
+  `${BigInt(value).toLocaleString('ru-RU')} Б`

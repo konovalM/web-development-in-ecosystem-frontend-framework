@@ -19,3 +19,6 @@ npm-debug.log*
 # editor
 .vscode/
 .idea/
+
+# Laboratory verification evidence
+!docs/lab3/evidence/*.log

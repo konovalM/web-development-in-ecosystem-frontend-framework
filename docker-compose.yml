@@ -1,28 +1,40 @@
 services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: vidnest
+      POSTGRES_PASSWORD: vidnest_demo
+      POSTGRES_DB: vidnest
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vidnest -d vidnest"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
   backend:
     build: ./maxim-nest-project
-    container_name: vidnest-backend
     environment:
       PORT: 3000
-      NODE_ENV: ${NODE_ENV:-production}
-      DATA_FILE: data/videos.json
+      NODE_ENV: development
+      DEMO_AUTH: "true"
+      DATABASE_URL: postgres://vidnest:vidnest_demo@db:5432/vidnest
     ports:
-      - "${BACKEND_PORT:-3000}:3000"
-    volumes:
-      - backend-data:/app/data
-    restart: unless-stopped
-
+      - "127.0.0.1:${BACKEND_PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "-c", "node dist/database/cli.js migrate && node dist/main.js"]
   frontend:
     build:
       context: ./my-app
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
-    container_name: vidnest-frontend
     ports:
-      - "${FRONTEND_PORT:-5173}:80"
+      - "127.0.0.1:${FRONTEND_PORT:-5173}:80"
     depends_on:
       - backend
-    restart: unless-stopped
-
 volumes:
-  backend-data:
+  postgres-data:

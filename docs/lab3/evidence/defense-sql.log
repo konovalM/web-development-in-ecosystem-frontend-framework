@@ -1,0 +1,165 @@
+Pager usage is off.
+BEGIN
+1. Domain tables (eight) and TypeORM migration history
+   tablename    
+----------------
+ channels
+ favorites
+ migrations
+ playlist_items
+ playlists
+ tags
+ users
+ video_tags
+ videos
+(9 rows)
+
+         name          
+-----------------------
+ Initial1800000000000
+ Comments1800000000001
+ Indexes1800000000002
+ Playback1800000000003
+(4 rows)
+
+2. Constraints on all eight domain tables
+   table_name   |       conname        |                                         definition                                          
+----------------+----------------------+---------------------------------------------------------------------------------------------
+ channels       | ck_channel_title     | CHECK ((length(TRIM(BOTH FROM title)) > 0))
+ channels       | ck_quota             | CHECK (((quota_bytes >= 0) AND ((used_bytes >= 0) AND (used_bytes <= quota_bytes))))
+ channels       | fk_channel_owner     | FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE RESTRICT
+ channels       | pk_channels          | PRIMARY KEY (id)
+ favorites      | fk_fav_user          | FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+ favorites      | fk_fav_video         | FOREIGN KEY (video_id) REFERENCES videos(id) ON DELETE CASCADE
+ favorites      | pk_favorites         | PRIMARY KEY (user_id, video_id)
+ playlist_items | ck_position          | CHECK (("position" > 0))
+ playlist_items | fk_pi_playlist       | FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE
+ playlist_items | fk_pi_video          | FOREIGN KEY (video_id) REFERENCES videos(id) ON DELETE CASCADE
+ playlist_items | pk_playlist_items    | PRIMARY KEY (playlist_id, video_id)
+ playlist_items | uq_playlist_position | UNIQUE (playlist_id, "position")
+ playlists      | ck_playlist_title    | CHECK ((length(TRIM(BOTH FROM title)) > 0))
+ playlists      | fk_playlist_owner    | FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE RESTRICT
+ playlists      | pk_playlists         | PRIMARY KEY (id)
+ tags           | ck_tag_name          | CHECK (((name = lower(TRIM(BOTH FROM name))) AND (length(name) > 0)))
+ tags           | pk_tags              | PRIMARY KEY (id)
+ tags           | uq_tag_name          | UNIQUE (name)
+ users          | ck_email             | CHECK (((email = lower(TRIM(BOTH FROM email))) AND (POSITION(('@'::text) IN (email)) > 1)))
+ users          | ck_user_name         | CHECK ((length(TRIM(BOTH FROM display_name)) > 0))
+ users          | pk_users             | PRIMARY KEY (id)
+ users          | uq_users_email       | UNIQUE (email)
+ video_tags     | fk_vt_tag            | FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+ video_tags     | fk_vt_video          | FOREIGN KEY (video_id) REFERENCES videos(id) ON DELETE CASCADE
+ video_tags     | pk_video_tags        | PRIMARY KEY (video_id, tag_id)
+ videos         | ck_playback_url      | CHECK ((playback_url ~ '^https?://[^[:space:]]+$'::text))
+ videos         | ck_publication       | CHECK (((status <> 'published'::text) OR (published_at IS NOT NULL)))
+ videos         | ck_video_description | CHECK ((length(description) <= 1000))
+ videos         | ck_video_size        | CHECK ((size_bytes > 0))
+ videos         | ck_video_status      | CHECK ((status = ANY (ARRAY['draft'::text, 'published'::text, 'hidden'::text])))
+ videos         | ck_video_title       | CHECK (((length(TRIM(BOTH FROM title)) >= 3) AND (length(TRIM(BOTH FROM title)) <= 100)))
+ videos         | fk_video_channel     | FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE RESTRICT
+ videos         | pk_videos            | PRIMARY KEY (id)
+ videos         | uq_storage_key       | UNIQUE (storage_key)
+(34 rows)
+
+3. All channels: used_bytes must equal actual_bytes; difference must be zero
+ id |   title   |     quota_bytes     |     used_bytes     |    actual_bytes    | difference 
+----+-----------+---------------------+--------------------+--------------------+------------
+  1 | Channel 1 | 1000000000000000000 | 100000001010116096 | 100000001010116096 |          0
+  2 | Channel 2 | 1000000000000000000 |             117000 |             117000 |          0
+  3 | Channel 3 | 1000000000000000000 |             123000 |             123000 |          0
+  4 | Channel 4 | 1000000000000000000 |             129000 |             129000 |          0
+  5 | Channel 5 | 1000000000000000000 |             135000 |             135000 |          0
+  6 | Channel 6 | 1000000000000000000 |             100000 |             100000 |          0
+  7 | Channel 7 | 1000000000000000000 |             105000 |             105000 |          0
+  8 | Channel 8 | 1000000000000000000 |                  0 |                  0 |          0
+(8 rows)
+
+4. Public catalog with author and channel
+ id |            title            |  channel  | author |        published_at        
+----+-----------------------------+-----------+--------+----------------------------
+ 46 | Видео для защиты интерфейса | Channel 1 | User 1 | 2026-11-02 19:42:28.043+00
+ 39 | Video 39                    | Channel 4 | User 4 | 2026-09-01 12:00:00+00
+ 38 | Video 38                    | Channel 3 | User 3 | 2026-09-01 12:00:00+00
+ 37 | Video 37                    | Channel 2 | User 2 | 2026-09-01 12:00:00+00
+ 36 | Video 36                    | Channel 1 | User 1 | 2026-09-01 12:00:00+00
+(5 rows)
+
+5. LEFT JOIN: COUNT(*) versus COUNT(v.id); retain channels with no publications
+ id | joined_rows | published_count 
+----+-------------+-----------------
+  1 |           6 |               6
+  2 |           5 |               5
+  3 |           5 |               5
+  4 |           5 |               5
+  5 |           4 |               4
+  6 |           4 |               4
+  7 |           1 |               0
+  8 |           1 |               0
+(8 rows)
+
+6. Same filter in WHERE: channels with no publications disappear
+ id | published_count 
+----+-----------------
+  1 |               6
+  2 |               5
+  3 |               5
+  4 |               5
+  5 |               4
+  6 |               4
+(6 rows)
+
+7. Favorite counts, including users without favorites
+ id | display_name | favorite_count 
+----+--------------+----------------
+  1 | User 1       |              8
+  2 | User 2       |              6
+  3 | User 3       |              6
+  4 | User 4       |              6
+  5 | User 5       |              6
+  6 | User 6       |              0
+(6 rows)
+
+8. Playlist content in position order
+ id |        title        | position | video_id | video_title |  status   
+----+---------------------+----------+----------+-------------+-----------
+  1 | Playlist 1          |        1 |        1 | Video 1     | published
+  1 | Playlist 1          |        2 |        2 | Video 2     | published
+  1 | Playlist 1          |        3 |        3 | Video 3     | published
+  7 | Подборка для защиты |        1 |       39 | Video 39    | published
+  7 | Подборка для защиты |        2 |        1 | Video 1     | published
+(5 rows)
+
+9. Two tags x three favorites: on untouched small seed count(*)=6, distinct=2 and 3
+ id | combinations | tags | favorites 
+----+--------------+------+-----------
+  1 |            6 |    2 |         3
+(1 row)
+
+10. Product indexes
+  indexname   |                                                       indexdef                                                       
+--------------+----------------------------------------------------------------------------------------------------------------------
+ ix_catalog   | CREATE INDEX ix_catalog ON public.videos USING btree (published_at DESC, id DESC) WHERE (status = 'published'::text)
+ ix_channel   | CREATE INDEX ix_channel ON public.videos USING btree (channel_id, created_at DESC, id DESC)
+ ix_favorites | CREATE INDEX ix_favorites ON public.favorites USING btree (user_id, created_at DESC, video_id DESC)
+(3 rows)
+
+11. Live plan; on a small table Seq Scan can be the correct choice
+                                                           QUERY PLAN                                                           
+--------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=9.51..9.51 rows=2 width=44) (actual time=0.014..0.016 rows=20 loops=1)
+   Buffers: shared hit=2
+   ->  Sort  (cost=9.51..9.51 rows=2 width=44) (actual time=0.014..0.014 rows=20 loops=1)
+         Sort Key: published_at DESC, id DESC
+         Sort Method: quicksort  Memory: 27kB
+         Buffers: shared hit=2
+         ->  Bitmap Heap Scan on videos  (cost=4.16..9.50 rows=2 width=44) (actual time=0.003..0.006 rows=29 loops=1)
+               Recheck Cond: (status = 'published'::text)
+               Heap Blocks: exact=1
+               Buffers: shared hit=2
+               ->  Bitmap Index Scan on ix_catalog  (cost=0.00..4.15 rows=2 width=0) (actual time=0.001..0.001 rows=29 loops=1)
+                     Buffers: shared hit=1
+ Planning Time: 0.022 ms
+ Execution Time: 0.028 ms
+(14 rows)
+
+COMMIT

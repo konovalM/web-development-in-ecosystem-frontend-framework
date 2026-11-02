@@ -1,0 +1,44 @@
+erDiagram
+ users ||--o{ channels : owns
+ channels ||--o{ videos : contains
+ users ||--o{ playlists : owns
+ users ||--o{ favorites : marks
+ videos ||--o{ favorites : saved
+ videos ||--o{ video_tags : tagged
+ tags ||--o{ video_tags : classifies
+ playlists ||--o{ playlist_items : orders
+ videos ||--o{ playlist_items : included
+ users { integer id PK 
+ text display_name 
+ text email UK 
+ timestamptz created_at }
+ channels { integer id PK 
+ integer owner_id FK 
+ text title 
+ bigint quota_bytes 
+ bigint used_bytes }
+ videos { integer id PK 
+ integer channel_id FK 
+ text title 
+ text description 
+ text status 
+ bigint size_bytes 
+ text storage_key UK 
+ timestamptz created_at 
+ timestamptz published_at 
+ boolean comments_enabled 
+ text playback_url }
+ tags { integer id PK 
+ text name UK }
+ video_tags { integer video_id PK,FK 
+ integer tag_id PK,FK }
+ playlists { integer id PK 
+ integer owner_id FK 
+ text title 
+ timestamptz created_at }
+ playlist_items { integer playlist_id PK,FK 
+ integer video_id PK,FK 
+ integer position UK }
+ favorites { integer user_id PK,FK 
+ integer video_id PK,FK 
+ timestamptz created_at }

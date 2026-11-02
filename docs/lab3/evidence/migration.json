@@ -1,0 +1,6 @@
+{
+  "before": "40",
+  "after": "40",
+  "rollbackReapply": true,
+  "lost": "comments_enabled=false returns to default true"
+}

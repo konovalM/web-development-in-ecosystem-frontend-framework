@@ -1,0 +1,20 @@
+{
+  "database": "vidnest_acceptance_test",
+  "created": {
+    "action": "create",
+    "pid": 62523,
+    "httpStatus": 201,
+    "id": 41,
+    "sizeBytes": "1234",
+    "status": "draft"
+  },
+  "read": {
+    "action": "read",
+    "pid": 62524,
+    "httpStatus": 200,
+    "id": 41,
+    "sizeBytes": "1234",
+    "status": "draft"
+  },
+  "passed": true
+}

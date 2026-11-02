@@ -1,57 +1,86 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { getVideo } from '../api.js'
-
+import { Link, useParams } from 'react-router-dom'
+import { bytes, request, statusLabel } from '../api.js'
+import { useSession } from '../session.js'
 function VideoPage() {
-  const { id } = useParams()
-  const [video, setVideo] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
+  const { id } = useParams(),
+    { user } = useSession()
+  const [result, setResult] = useState(null)
   useEffect(() => {
-    setLoading(true)
-    setError(null)
-    getVideo(id)
-      .then(setVideo)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [id])
-
-  if (loading) return <p className="state">Загрузка…</p>
-  if (error)
+    const controller = new AbortController()
+    request(`/videos/${id}`, { user, signal: controller.signal })
+      .then((video) => setResult({ id, video }))
+      .catch((e) => {
+        if (e.name !== 'AbortError') setResult({ id, error: e.message })
+      })
+    return () => controller.abort()
+  }, [id, user])
+  if (result?.id !== id) return <p className="empty-state">Загрузка видео…</p>
+  if (result.error)
     return (
-      <div className="app">
-        <Link to="/">← Назад к списку</Link>
-        <p className="state">Ошибка: {error}</p>
+      <div className="workspace">
+        <Link to="/">← В каталог</Link>
+        <p role="alert" className="form-error">
+          {result.error}
+        </p>
       </div>
     )
-  if (!video) return null
-
+  const video = result.video
   return (
-    <div className="app">
-      <Link to="/">← Назад к списку</Link>
-      <h1 style={{ fontSize: 32, margin: '18px 0 6px' }}>{video.title}</h1>
-      <div className="card-meta" style={{ marginBottom: 16 }}>
-        {video.author} · тема: {video.theme} · {video.duration} сек ·{' '}
-        {video.status}
-      </div>
-      <video
-        src={video.url}
-        controls
-        style={{
-          width: '100%',
-          maxWidth: 720,
-          borderRadius: 14,
-          background: '#000',
-        }}
-      />
-      {video.description && (
-        <p style={{ marginTop: 16, color: 'var(--muted)', maxWidth: 720 }}>
-          {video.description}
-        </p>
+    <article className="workspace video-page">
+      <Link to="/">← В каталог</Link>
+      <header className="page-heading">
+        <div>
+          <span className="eyebrow">
+            {video.channelTitle} / {video.author}
+          </span>
+          <h1>{video.title}</h1>
+          <p>
+            {statusLabel[video.status]} · {bytes(video.sizeBytes)}
+          </p>
+        </div>
+        <Link className="btn" to="/mine">
+          Управление своими видео
+        </Link>
+      </header>
+      {video.playbackUrl ? (
+        <video key={id} src={video.playbackUrl} controls preload="metadata" />
+      ) : (
+        <div className="media-placeholder">
+          <h2>Карточка метаданных</h2>
+          <p>Автор пока не добавил ссылку для воспроизведения.</p>
+        </div>
       )}
-    </div>
+      <div className="video-details">
+        <p>{video.description || 'Описание не добавлено.'}</p>
+        <div className="tag-chips">
+          {video.tags.map((tag) => (
+            <span key={tag.id}>{tag.name}</span>
+          ))}
+        </div>
+        <dl>
+          <div>
+            <dt>Создано</dt>
+            <dd>{new Date(video.createdAt).toLocaleString('ru-RU')}</dd>
+          </div>
+          <div>
+            <dt>Первая публикация</dt>
+            <dd>
+              {video.publishedAt
+                ? new Date(video.publishedAt).toLocaleString('ru-RU')
+                : 'Ещё не опубликовано'}
+            </dd>
+          </div>
+          <div>
+            <dt>Комментарии</dt>
+            <dd>
+              {video.commentsEnabled ? 'Разрешены' : 'Выключены'}{' '}
+              <small>(настройка; сами комментарии пока не реализованы)</small>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </article>
   )
 }
-
 export default VideoPage

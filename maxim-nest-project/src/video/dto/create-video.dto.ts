@@ -1,55 +1,60 @@
+import { Transform } from 'class-transformer';
 import {
-  IsIn,
-  IsInt,
-  IsOptional,
-  IsString,
+  IsBoolean,
   IsUrl,
-  Length,
-  Matches,
-  Max,
+  IsInt,
   Min,
+  Max,
+  IsString,
+  Length,
+  IsOptional,
+  MaxLength,
+  Matches,
+  IsArray,
+  ArrayUnique,
+  ArrayMaxSize,
 } from 'class-validator';
-
-export const VIDEO_FORMATS = ['mp4', 'mov', 'webm', 'mkv'];
-export const VIDEO_STATUSES = ['processing', 'published', 'blocked'];
-export type VideoStatus = 'processing' | 'published' | 'blocked';
-
-export class CreateVideoDto {
-  @IsString()
-  @Length(3, 100, { message: 'Название должно быть от 3 до 100 символов' })
-  title: string;
-
+class VideoOptionsDto {
+  @IsOptional() @IsBoolean() commentsEnabled?: boolean;
   @IsOptional()
-  @IsString()
-  @Length(0, 1000, { message: 'Описание не длиннее 1000 символов' })
-  description?: string;
-
-  @IsUrl({}, { message: 'Ссылка должна быть корректным URL' })
-  @Matches(/\.(mp4|mov|webm|mkv)(\?.*)?$/i, {
-    message: 'Поддерживаются только форматы: mp4, mov, webm, mkv',
+  @IsUrl({
+    protocols: ['http', 'https'],
+    require_protocol: true,
+    require_tld: false,
   })
-  url: string;
-
-  @IsInt({ message: 'Длительность — целое число секунд' })
-  @Min(1, { message: 'Длительность должна быть больше нуля' })
-  @Max(21600, { message: 'Слишком длинное видео (лимит 6 часов)' })
-  duration: number;
-
-  @IsOptional()
+  @MaxLength(2048)
+  playbackUrl?: string | null;
+}
+export class CreateVideoDto extends VideoOptionsDto {
+  @IsInt() @Min(1) @Max(2147483647) channelId!: number;
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
-  theme?: string;
+  @Length(3, 100)
+  title!: string;
+  @IsOptional() @IsString() @MaxLength(1000) description?: string;
+  @IsString() @Matches(/^[1-9][0-9]{0,18}$/) sizeBytes!: string;
+  @IsArray()
+  @ArrayUnique()
+  @ArrayMaxSize(100)
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @Max(2147483647, { each: true })
+  tagIds!: number[];
+}
+export class UpdateVideoDto extends VideoOptionsDto {
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @ArrayMaxSize(100)
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  @Max(2147483647, { each: true })
+  tagIds?: number[];
 
   @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
-  author?: string;
-
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  @Max(2048, { message: 'Превышен лимит размера файла (2048 МБ)' })
-  size?: number;
-
-  @IsOptional()
-  @IsIn(VIDEO_STATUSES, { message: 'Недопустимый статус видео' })
-  status?: VideoStatus;
+  @Length(3, 100)
+  title?: string;
+  @IsOptional() @IsString() @MaxLength(1000) description?: string;
 }

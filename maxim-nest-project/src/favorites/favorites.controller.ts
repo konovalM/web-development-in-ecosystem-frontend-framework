@@ -1,35 +1,31 @@
+import { PositiveIdPipe } from '../database/positive-id.pipe.js';
 import {
-  Body,
   Controller,
   Delete,
   Get,
   Param,
-  Post,
-  Query,
+  Put,
+  Headers,
+  HttpCode,
 } from '@nestjs/common';
-import type { Video } from '../video/video.service.js';
-import { AddFavoriteDto } from './dto/add-favorite.dto.js';
 import { FavoritesService } from './favorites.service.js';
-
-@Controller('favorites')
+import { demoUser } from '../database/demo-user.js';
+@Controller('me/favorites')
 export class FavoritesController {
-  constructor(private readonly favoritesService: FavoritesService) {}
-
-  @Get()
-  list(@Query('userId') userId?: string): Video[] {
-    return this.favoritesService.list(userId);
+  constructor(private readonly service: FavoritesService) {}
+  @Get() list(@Headers('x-demo-user') u?: string) {
+    return this.service.list(demoUser(u)!);
   }
-
-  @Post()
-  add(@Body() dto: AddFavoriteDto): Video[] {
-    return this.favoritesService.add(dto.videoId, dto.userId);
+  @Put(':id') @HttpCode(204) async add(
+    @Param('id', PositiveIdPipe) id: number,
+    @Headers('x-demo-user') u?: string,
+  ) {
+    await this.service.add(id, demoUser(u)!);
   }
-
-  @Delete(':videoId')
-  remove(
-    @Param('videoId') videoId: string,
-    @Query('userId') userId?: string,
-  ): Video[] {
-    return this.favoritesService.remove(videoId, userId);
+  @Delete(':id') @HttpCode(204) async remove(
+    @Param('id', PositiveIdPipe) id: number,
+    @Headers('x-demo-user') u?: string,
+  ) {
+    await this.service.remove(id, demoUser(u)!);
   }
 }

@@ -1,0 +1,131 @@
+{
+  "on": {
+    "sql": "SELECT c.id,count(*) rows,count(v.id) videos FROM channels c LEFT JOIN videos v ON v.channel_id=c.id AND v.status='published' GROUP BY c.id ORDER BY c.id",
+    "rows": [
+      {
+        "id": 1,
+        "rows": "5",
+        "videos": "5"
+      },
+      {
+        "id": 2,
+        "rows": "5",
+        "videos": "5"
+      },
+      {
+        "id": 3,
+        "rows": "5",
+        "videos": "5"
+      },
+      {
+        "id": 4,
+        "rows": "5",
+        "videos": "5"
+      },
+      {
+        "id": 5,
+        "rows": "4",
+        "videos": "4"
+      },
+      {
+        "id": 6,
+        "rows": "4",
+        "videos": "4"
+      },
+      {
+        "id": 7,
+        "rows": "1",
+        "videos": "0"
+      },
+      {
+        "id": 8,
+        "rows": "1",
+        "videos": "0"
+      }
+    ]
+  },
+  "where": {
+    "sql": "SELECT c.id,count(v.id) videos FROM channels c LEFT JOIN videos v ON v.channel_id=c.id WHERE v.status='published' GROUP BY c.id ORDER BY c.id",
+    "rows": [
+      {
+        "id": 1,
+        "videos": "5"
+      },
+      {
+        "id": 2,
+        "videos": "5"
+      },
+      {
+        "id": 3,
+        "videos": "5"
+      },
+      {
+        "id": 4,
+        "videos": "5"
+      },
+      {
+        "id": 5,
+        "videos": "4"
+      },
+      {
+        "id": 6,
+        "videos": "4"
+      }
+    ]
+  },
+  "multiplication": {
+    "sql": "SELECT v.id,vt.tag_id,f.user_id FROM videos v JOIN video_tags vt ON vt.video_id=v.id JOIN favorites f ON f.video_id=v.id WHERE v.id=1 AND f.user_id IN(1,2,3) ORDER BY vt.tag_id,f.user_id",
+    "rows": [
+      {
+        "id": 1,
+        "tag_id": 1,
+        "user_id": 1
+      },
+      {
+        "id": 1,
+        "tag_id": 1,
+        "user_id": 2
+      },
+      {
+        "id": 1,
+        "tag_id": 1,
+        "user_id": 3
+      },
+      {
+        "id": 1,
+        "tag_id": 2,
+        "user_id": 1
+      },
+      {
+        "id": 1,
+        "tag_id": 2,
+        "user_id": 2
+      },
+      {
+        "id": 1,
+        "tag_id": 2,
+        "user_id": 3
+      }
+    ]
+  },
+  "distinct": {
+    "sql": "SELECT count(*) combinations,count(DISTINCT vt.tag_id) tags,count(DISTINCT f.user_id) favorites FROM videos v JOIN video_tags vt ON vt.video_id=v.id JOIN favorites f ON f.video_id=v.id WHERE v.id=1 AND f.user_id IN(1,2,3)",
+    "rows": [
+      {
+        "combinations": "6",
+        "tags": "2",
+        "favorites": "3"
+      }
+    ]
+  },
+  "preaggregate": {
+    "sql": "WITH t AS (SELECT video_id,count(*) tags FROM video_tags GROUP BY video_id),f AS(SELECT video_id,count(*) favorites FROM favorites WHERE user_id IN(1,2,3) GROUP BY video_id) SELECT v.id,t.tags,f.favorites FROM videos v LEFT JOIN t ON t.video_id=v.id LEFT JOIN f ON f.video_id=v.id WHERE v.id=1",
+    "rows": [
+      {
+        "id": 1,
+        "tags": "2",
+        "favorites": "3"
+      }
+    ]
+  }
+}
