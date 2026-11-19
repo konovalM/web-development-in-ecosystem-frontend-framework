@@ -1,6 +1,6 @@
 # VidNest backend — ЛР3
 
-Инструкции запуска, миграций, seed, API и PostgreSQL-тестов находятся в [корневом README](../README.md). Полный [отчёт](../docs/lab3/report.md) и [конспект лекций](../docs/lecture-notes.md) хранятся в docs.
+Инструкции запуска, миграций, seed, API и PostgreSQL-тестов находятся в [корневом README](../README.md). Полный [отчёт](../docs/lab3/report.md) хранится в docs.
 
 Основные команды после `npm ci`: `npm run build`, `npm run db:migrate`, `npm run seed`, `npm run start:dev`. Подключение через `.env` по образцу `.env.example`.
 

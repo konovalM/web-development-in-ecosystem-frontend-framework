@@ -2,12 +2,8 @@
 
 Ветка `lab-3` создана от `lab2-docker` (`4e04fef`). NestJS backend: `maxim-nest-project`, React-клиент: `my-app`.
 
-- [Проверка по критериям оценки и главное к защите](docs/lab3/grading-checklist.md)
 - [Отчёт по всем этапам](docs/lab3/report.md)
 - [Все разделы интерфейса и дополнительные API](docs/lab3/interface.md)
-- [Что сделано и подготовка к защите](docs/lab3/defense-guide.md)
-- [Ответы на все вопросы самопроверки](docs/lab3/self-check.md)
-- [Конспект двух лекций](docs/lecture-notes.md)
 - [ER-диаграмма](docs/lab3/schema.svg), [Mermaid-исходник](docs/lab3/schema.mmd)
 - [Словарь данных](docs/lab3/data-dictionary.md)
 - [12 SQL-запросов](maxim-nest-project/sql/queries.sql)
